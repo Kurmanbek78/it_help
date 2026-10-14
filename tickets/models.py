@@ -22,6 +22,12 @@ class Ticket(models.Model):
         MEDIUM = "medium", "Средняя"
         HIGH = "high", "Высокая"
 
+    ALLOWED_TRANSITIONS = {
+        "new": ["in_progress"],
+        "in_progress": ["resolved"],
+        "resolved": [],
+    }
+
     title = models.CharField("Тема", max_length=200)
     description = models.TextField("Описание")
     room = models.CharField("Кабинет", max_length=50)
@@ -36,6 +42,9 @@ class Ticket(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def can_change_status_to(self, new_status):
+        return new_status in self.ALLOWED_TRANSITIONS.get(self.status, [])
 
     def __str__(self):
         return f"#{self.pk} {self.title}"

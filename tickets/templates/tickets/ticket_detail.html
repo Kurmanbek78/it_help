@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ ticket.pk }}{% endblock %}
+{% block content %}
+<a href="{% url 'ticket_list' %}">← К списку</a>
+<h2 class="mt-2">#{{ ticket.pk }} {{ ticket.title }}</h2>
+<p>
+  <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+  <span class="badge bg-info text-dark">{{ ticket.get_priority_display }}</span>
+</p>
+<div>{{ ticket.description|linebreaks }}</div>
+<p class="text-muted">
+  Кабинет: {{ ticket.room }}<br>
+  Автор: {{ ticket.author.username }}<br>
+  Исполнитель: {{ ticket.assignee.username|default:"не назначен" }}<br>
+  Создана: {{ ticket.created_at|date:"d.m.Y H:i" }}
+</p>
+
+{% if user.role == "staff" and ticket.status != "resolved" %}
+<form method="post" action="{% url 'ticket_status' ticket.pk %}" class="mb-4">
+  {% csrf_token %}
+  {% if ticket.status == "new" %}
+    <button name="status" value="in_progress" class="btn btn-primary">Взять в работу</button>
+  {% else %}
+    <button name="status" value="resolved" class="btn btn-success">Отметить решённой</button>
+  {% endif %}
+</form>
+{% endif %}
+
+<h4>Комментарии</h4>
+{% for c in ticket.comments.all %}
+<div class="border rounded p-2 mb-2">
+  <strong>{{ c.author.username }}</strong>
+  <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+  <div>{{ c.text|linebreaksbr }}</div>
+</div>
+{% empty %}
+<p class="text-muted">Комментариев пока нет.</p>
+{% endfor %}
+
+<form method="post" class="mt-3">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-secondary">Добавить комментарий</button>
+</form>
+{% endblock %}

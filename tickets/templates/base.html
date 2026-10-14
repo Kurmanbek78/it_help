@@ -12,6 +12,8 @@
     <a class="navbar-brand" href="{% url 'home' %}">IT-помощь</a>
     <div class="d-flex align-items-center gap-2">
       {% if user.is_authenticated %}
+        <a class="btn btn-outline-light btn-sm" href="{% url 'ticket_list' %}">Заявки</a>
+        <a class="btn btn-warning btn-sm" href="{% url 'ticket_create' %}">Новая заявка</a>
         <span class="text-light">{{ user.username }}</span>
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
@@ -25,6 +27,9 @@
   </div>
 </nav>
 <main class="container py-4">
+  {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %}">{{ m }}</div>
+  {% endfor %}
   {% block content %}{% endblock %}
 </main>
 </body>

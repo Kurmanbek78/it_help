@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Заявки{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">{% if user.role == "staff" %}Все заявки{% else %}Мои заявки{% endif %}</h2>
+  <a class="btn btn-primary" href="{% url 'ticket_create' %}">Новая заявка</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-12 col-md-6">
+    <input class="form-control" name="q" value="{{ q }}" placeholder="Поиск по теме">
+  </div>
+  <div class="col-8 col-md-4">
+    <select class="form-select" name="status">
+      <option value="">Все статусы</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-4 col-md-2">
+    <button class="btn btn-secondary w-100">Найти</button>
+  </div>
+</form>
+
+<div class="list-group mb-3">
+  {% for t in page %}
+  <a class="list-group-item list-group-item-action" href="{% url 'ticket_detail' t.pk %}">
+    <div class="d-flex justify-content-between">
+      <strong>#{{ t.pk }} {{ t.title }}</strong>
+      <span class="badge bg-secondary">{{ t.get_status_display }}</span>
+    </div>
+    <small class="text-muted">Кабинет {{ t.room }} · {{ t.get_priority_display }} · {{ t.created_at|date:"d.m.Y H:i" }}</small>
+  </a>
+  {% empty %}
+  <div class="list-group-item text-muted">Заявок пока нет.</div>
+  {% endfor %}
+</div>
+
+{% if page.has_other_pages %}
+<nav class="d-flex gap-2 align-items-center">
+  {% if page.has_previous %}
+    <a class="btn btn-outline-secondary btn-sm" href="?page={{ page.previous_page_number }}&q={{ q }}&status={{ status }}">Назад</a>
+  {% endif %}
+  <span>Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}
+    <a class="btn btn-outline-secondary btn-sm" href="?page={{ page.next_page_number }}&q={{ q }}&status={{ status }}">Вперёд</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
