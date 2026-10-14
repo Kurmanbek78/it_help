@@ -1,36 +1,45 @@
+{% load static %}
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}IT-помощь{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>{% block title %}Главная{% endblock %} · IT-помощь колледжа</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'home' %}">IT-помощь</a>
-    <div class="d-flex align-items-center gap-2">
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}">IT-помощь</a>
+    <div class="nav">
       {% if user.is_authenticated %}
-        <a class="btn btn-outline-light btn-sm" href="{% url 'ticket_list' %}">Заявки</a>
-        <a class="btn btn-warning btn-sm" href="{% url 'ticket_create' %}">Новая заявка</a>
-        <span class="text-light">{{ user.username }}</span>
+        <a class="btn btn--ghost btn--small" href="{% url 'ticket_list' %}">Заявки</a>
+        <a class="btn btn--small" href="{% url 'ticket_create' %}">Создать заявку</a>
+        <span class="who"><strong>{{ user.username }}</strong>, {{ user.get_role_display }}</span>
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
-          <button class="btn btn-outline-light btn-sm">Выйти</button>
+          <button class="btn btn--ghost btn--small">Выйти</button>
         </form>
       {% else %}
-        <a class="btn btn-outline-light btn-sm" href="{% url 'login' %}">Войти</a>
-        <a class="btn btn-light btn-sm" href="{% url 'register' %}">Регистрация</a>
+        <a class="btn btn--ghost btn--small" href="{% url 'login' %}">Войти</a>
+        <a class="btn btn--small" href="{% url 'register' %}">Регистрация</a>
       {% endif %}
     </div>
   </div>
-</nav>
-<main class="container py-4">
-  {% for m in messages %}
-    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %}">{{ m }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
+</header>
+
+<main>
+  <div class="wrap">
+    {% for m in messages %}
+      <div class="msg msg--{{ m.tags }}">{{ m }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
 </main>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

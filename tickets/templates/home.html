@@ -1,5 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>IT-помощь колледжа</h1>
-<p>Сообщите о проблеме с техникой, и специалист её решит.</p>
+<section class="intro">
+  <h1>Сломалась техника в колледже? Сообщите нам</h1>
+  <p class="lead">Проектор, принтер, интернет или компьютер в кабинете. Опишите проблему, и IT-специалист возьмёт заявку в работу.</p>
+  <div class="actions">
+    {% if user.is_authenticated %}
+      <a class="btn" href="{% url 'ticket_create' %}">Создать заявку</a>
+      <a class="btn btn--ghost" href="{% url 'ticket_list' %}">{% if user.role == "staff" %}Очередь заявок{% else %}Мои заявки{% endif %}</a>
+    {% else %}
+      <a class="btn" href="{% url 'register' %}">Зарегистрироваться</a>
+      <a class="btn btn--ghost" href="{% url 'login' %}">Войти</a>
+    {% endif %}
+  </div>
+</section>
+
+<h2>Как проходит заявка</h2>
+<ol class="how">
+  <li>
+    <span class="num muted">1</span>
+    <h3>Новая</h3>
+    <p>Вы описали проблему и указали кабинет. Заявка попала в очередь.</p>
+  </li>
+  <li>
+    <span class="num muted">2</span>
+    <h3>В работе</h3>
+    <p>Специалист взял заявку. Если нужны детали, он напишет в комментариях.</p>
+  </li>
+  <li>
+    <span class="num muted">3</span>
+    <h3>Решена</h3>
+    <p>Проблема устранена. История переписки остаётся на странице заявки.</p>
+  </li>
+</ol>
 {% endblock %}

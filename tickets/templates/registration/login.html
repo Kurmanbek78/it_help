@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Вход{% endblock %}
 {% block content %}
-<div class="col-md-5 mx-auto">
-  <h2>Вход</h2>
+<div class="narrow panel">
+  <h1>Вход</h1>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary">Войти</button>
+    {% include "form_fields.html" %}
+    <button class="btn btn--wide">Войти</button>
   </form>
+  <p class="alt">Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a></p>
 </div>
 {% endblock %}

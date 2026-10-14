@@ -1,50 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Заявки{% endblock %}
+{% block title %}{% if user.role == "staff" %}Очередь заявок{% else %}Мои заявки{% endif %}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="mb-0">{% if user.role == "staff" %}Все заявки{% else %}Мои заявки{% endif %}</h2>
-  <a class="btn btn-primary" href="{% url 'ticket_create' %}">Новая заявка</a>
+<div class="page-head">
+  <h1>{% if user.role == "staff" %}Очередь заявок{% else %}Мои заявки{% endif %}</h1>
+  <a class="btn" href="{% url 'ticket_create' %}">Создать заявку</a>
 </div>
 
-<form method="get" class="row g-2 mb-3">
-  <div class="col-12 col-md-6">
-    <input class="form-control" name="q" value="{{ q }}" placeholder="Поиск по теме">
-  </div>
-  <div class="col-8 col-md-4">
-    <select class="form-select" name="status">
-      <option value="">Все статусы</option>
-      {% for value, label in statuses %}
-        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-4 col-md-2">
-    <button class="btn btn-secondary w-100">Найти</button>
-  </div>
+<form class="filters" method="get">
+  <input name="q" value="{{ q }}" placeholder="Поиск по теме" aria-label="Поиск по теме">
+  <select name="status" aria-label="Статус">
+    <option value="">Все статусы</option>
+    {% for value, label in statuses %}
+      <option value="{{ value }}"{% if value == status %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn--ghost">Найти</button>
 </form>
 
-<div class="list-group mb-3">
+{% if page.object_list %}
+<div class="queue">
   {% for t in page %}
-  <a class="list-group-item list-group-item-action" href="{% url 'ticket_detail' t.pk %}">
-    <div class="d-flex justify-content-between">
-      <strong>#{{ t.pk }} {{ t.title }}</strong>
-      <span class="badge bg-secondary">{{ t.get_status_display }}</span>
-    </div>
-    <small class="text-muted">Кабинет {{ t.room }} · {{ t.get_priority_display }} · {{ t.created_at|date:"d.m.Y H:i" }}</small>
+  <a class="ticket ticket--{{ t.status }}" href="{% url 'ticket_detail' t.pk %}">
+    <span class="num muted">#{{ t.pk }}</span>
+    <span class="ticket__title">{{ t.title }}</span>
+    <span class="pill pill--{{ t.status }}">{{ t.get_status_display }}</span>
+    <span class="ticket__meta">
+      <span>Кабинет {{ t.room }}</span>
+      <span class="prio prio--{{ t.priority }}">{{ t.get_priority_display }} срочность</span>
+      <span>{{ t.created_at|date:"d.m.Y H:i" }}</span>
+      {% if user.role == "staff" %}<span>автор: {{ t.author.username }}</span>{% endif %}
+    </span>
   </a>
-  {% empty %}
-  <div class="list-group-item text-muted">Заявок пока нет.</div>
   {% endfor %}
 </div>
+{% else %}
+<div class="queue empty">
+  {% if q or status %}
+    <p>Ничего не найдено. Измените запрос или выберите другой статус.</p>
+    <a class="btn btn--ghost" href="{% url 'ticket_list' %}">Сбросить фильтры</a>
+  {% elif user.role == "staff" %}
+    <p>Очередь пуста: новых заявок нет.</p>
+  {% else %}
+    <p>У вас пока нет заявок. Опишите проблему, и специалист возьмёт её в работу.</p>
+    <a class="btn" href="{% url 'ticket_create' %}">Создать заявку</a>
+  {% endif %}
+</div>
+{% endif %}
 
 {% if page.has_other_pages %}
-<nav class="d-flex gap-2 align-items-center">
+<nav class="pager" aria-label="Страницы">
   {% if page.has_previous %}
-    <a class="btn btn-outline-secondary btn-sm" href="?page={{ page.previous_page_number }}&q={{ q }}&status={{ status }}">Назад</a>
+    <a class="btn btn--ghost btn--small" href="?page={{ page.previous_page_number }}&q={{ q }}&status={{ status }}">Назад</a>
   {% endif %}
-  <span>Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+  <span class="muted">Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
   {% if page.has_next %}
-    <a class="btn btn-outline-secondary btn-sm" href="?page={{ page.next_page_number }}&q={{ q }}&status={{ status }}">Вперёд</a>
+    <a class="btn btn--ghost btn--small" href="?page={{ page.next_page_number }}&q={{ q }}&status={{ status }}">Вперёд</a>
   {% endif %}
 </nav>
 {% endif %}
