@@ -1,4 +1,4 @@
-{% load static %}
+{% load static tz %}
 <!doctype html>
 <html lang="ru">
 <head>
@@ -40,6 +40,11 @@
     {% block content %}{% endblock %}
   </div>
 </main>
+
+{% get_current_timezone as current_tz %}
+<footer class="wrap muted" style="width:100%;padding-top:0;padding-bottom:24px;font-size:.85rem">
+  Время указано по часовому поясу {{ current_tz }} (UTC{% now "O" %}).
+</footer>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
