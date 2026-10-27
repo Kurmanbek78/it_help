@@ -1,3 +1,5 @@
+import os
+
 from django.core.management.base import BaseCommand
 
 from tickets.models import Comment, Ticket, User
@@ -29,6 +31,18 @@ class Command(BaseCommand):
     help = "Наполняет базу демонстрационными данными"
 
     def handle(self, *args, **options):
+        admin_name = os.environ.get("DJANGO_SUPERUSER_USERNAME")
+        admin_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+        if admin_name and admin_password:
+            admin, _ = User.objects.get_or_create(username=admin_name)
+            admin.is_staff = True
+            admin.is_superuser = True
+            admin.set_password(admin_password)
+            admin.save()
+            self.stdout.write(f"Админ {admin_name} готов.")
+        else:
+            self.stdout.write("Админ не создан: нет DJANGO_SUPERUSER_USERNAME или PASSWORD.")
+
         users = {}
         for username, password, role in USERS:
             user, _ = User.objects.get_or_create(username=username, defaults={"role": role})
