@@ -51,24 +51,58 @@
 
     <section class="thread">
       <h2>Комментарии</h2>
-      {% for c in ticket.comments.all %}
-      <div class="comment{% if c.author.role == 'staff' %} comment--staff{% endif %}">
-        <div class="comment__head">
-          <strong>{{ c.author.username }}</strong>{% if c.author.role == "staff" %}<span class="tag-it">IT</span>{% endif %}
-          {{ c.created_at|date:"d.m.Y H:i" }}
-        </div>
-        <p>{{ c.text|linebreaksbr }}</p>
+      <div id="comments">
+        {% for c in ticket.comments.all %}
+          {% include "tickets/_comment.html" %}
+        {% endfor %}
       </div>
-      {% empty %}
-      <p class="muted">Комментариев пока нет. Напишите первый, если нужно что-то уточнить.</p>
-      {% endfor %}
+      {% if not ticket.comments.all %}
+        <p id="no-comments" class="muted">Комментариев пока нет. Напишите первый, если нужно что-то уточнить.</p>
+      {% endif %}
 
-      <form class="panel" method="post">
+      <form id="comment-form" class="panel" method="post">
         {% csrf_token %}
         {% include "form_fields.html" %}
+        <div class="error" id="comment-error" role="alert"></div>
         <button class="btn">Добавить комментарий</button>
       </form>
     </section>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const form = document.getElementById("comment-form");
+  const errorBox = document.getElementById("comment-error");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector("button");
+    button.disabled = true;
+    button.textContent = "Отправка…";
+    errorBox.textContent = "";
+    try {
+      const response = await fetch(window.location.href, {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: new FormData(form),
+      });
+      const data = await response.json();
+      if (data.ok) {
+        const empty = document.getElementById("no-comments");
+        if (empty) empty.remove();
+        document.getElementById("comments").insertAdjacentHTML("beforeend", data.html);
+        form.reset();
+      } else {
+        errorBox.textContent = data.error;
+      }
+    } catch (error) {
+      errorBox.textContent = "Не удалось отправить. Проверьте соединение и попробуйте ещё раз.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Добавить комментарий";
+    }
+  });
+</script>
 {% endblock %}

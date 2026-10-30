@@ -3,7 +3,9 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
 from .forms import CommentForm, RegisterForm, TicketForm
@@ -67,6 +69,9 @@ def ticket_detail(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
     if ticket.author != request.user and not is_it_staff(request.user):
         raise PermissionDenied
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -74,9 +79,16 @@ def ticket_detail(request, pk):
             comment.ticket = ticket
             comment.author = request.user
             comment.save()
+            if is_ajax:
+                html = render_to_string("tickets/_comment.html", {"c": comment}, request=request)
+                return JsonResponse({"ok": True, "html": html})
             return redirect("ticket_detail", pk=ticket.pk)
+        if is_ajax:
+            error = form.errors["text"][0] if "text" in form.errors else "Проверьте текст комментария."
+            return JsonResponse({"ok": False, "error": error}, status=400)
     else:
         form = CommentForm()
+
     return render(request, "tickets/ticket_detail.html", {"ticket": ticket, "form": form})
 
 

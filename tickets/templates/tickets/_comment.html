@@ -1,0 +1,7 @@
+<div class="comment{% if c.author.role == 'staff' %} comment--staff{% endif %}">
+  <div class="comment__head">
+    <strong>{{ c.author.username }}</strong>{% if c.author.role == "staff" %}<span class="tag-it">IT</span>{% endif %}
+    {{ c.created_at|date:"d.m.Y H:i" }}
+  </div>
+  <p>{{ c.text|linebreaksbr }}</p>
+</div>
